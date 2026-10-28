@@ -1,9 +1,9 @@
 /*
  * CyberMetrics - Feuille de style principale
- * Theme: Dark Cyber Modern - Style SaaS
+ * Theme: GitHub Dark - Noir/Gris fonce/Jaune Mangue
  *
  * Ce fichier definit l'apparence de l'application avec un theme sombre
- * et des accents neon typiques du style cyberpunk/tech moderne
+ * inspire du design de GitHub avec des accents jaune mangue
  */
 
 /* ============================================================
@@ -11,30 +11,35 @@
    Permet de centraliser les couleurs et facilite les modifications
    ============================================================ */
 :root {
-    /* Couleurs de fond principales */
-    --bg-primary: #0a0e17;      /* Fond principal tres sombre */
-    --bg-secondary: #111827;    /* Fond des cartes et sections */
-    --bg-tertiary: #1f2937;     /* Fond des elements interactifs */
+    /* Couleurs de fond principales - style GitHub dark */
+    --bg-primary: #0d1117;      /* Fond principal noir profond */
+    --bg-secondary: #161b22;    /* Fond des cartes et sections */
+    --bg-tertiary: #21262d;     /* Fond des elements interactifs */
+    --bg-hover: #30363d;        /* Fond au survol */
 
-    /* Couleurs d'accent (style neon cyber) */
-    --accent-primary: #00f0ff;   /* Cyan neon - couleur principale */
-    --accent-secondary: #8b5cf6; /* Violet - couleur secondaire */
-    --accent-success: #10b981;   /* Vert emeraude - succes */
-    --accent-warning: #f59e0b;   /* Orange ambre - avertissement */
-    --accent-danger: #ef4444;    /* Rouge - danger/erreur */
+    /* Couleur d'accent principale - Jaune Mangue */
+    --accent-primary: #f0a500;   /* Jaune mangue - couleur principale */
+    --accent-primary-hover: #d4940a; /* Jaune mangue plus fonce au hover */
+    --accent-secondary: #e8b931; /* Jaune mangue clair */
+
+    /* Couleurs semantiques */
+    --accent-success: #238636;   /* Vert GitHub */
+    --accent-warning: #d29922;   /* Orange/Jaune avertissement */
+    --accent-danger: #da3633;    /* Rouge GitHub */
 
     /* Couleurs de texte */
-    --text-primary: #f9fafb;     /* Texte principal blanc casse */
-    --text-secondary: #9ca3af;   /* Texte secondaire gris */
-    --text-muted: #6b7280;       /* Texte attenue */
+    --text-primary: #e6edf3;     /* Texte principal blanc casse */
+    --text-secondary: #8b949e;   /* Texte secondaire gris */
+    --text-muted: #6e7681;       /* Texte attenue */
+    --text-link: #f0a500;        /* Liens en jaune mangue */
 
-    /* Bordures et ombres */
-    --border-color: #374151;     /* Couleur des bordures */
-    --glow-primary: 0 0 20px rgba(0, 240, 255, 0.3);  /* Effet glow cyan */
-    --glow-secondary: 0 0 20px rgba(139, 92, 246, 0.3); /* Effet glow violet */
+    /* Bordures */
+    --border-color: #30363d;     /* Couleur des bordures */
+    --border-color-emphasis: #484f58; /* Bordure plus visible */
 
-    /* Espacements et rayons */
-    --border-radius: 12px;
+    /* Espacements et rayons - style GitHub (plus subtils) */
+    --border-radius: 6px;
+    --border-radius-lg: 8px;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
@@ -53,27 +58,20 @@
 
 /* Style du corps de page */
 body {
-    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    line-height: 1.6;
+    line-height: 1.5;
     min-height: 100vh;
-    /* Grille de fond style cyber */
-    background-image:
-        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-    background-size: 50px 50px;
+    font-size: 14px;
 }
 
 /* ============================================================
    NAVIGATION PRINCIPALE
-   Barre de navigation fixe en haut avec effet glass
+   Barre de navigation fixe en haut - style GitHub
    ============================================================ */
 .navbar {
-    /* Fond semi-transparent avec flou (effet glassmorphism) */
-    background: rgba(17, 24, 39, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     padding: var(--spacing-md) var(--spacing-xl);
     position: sticky;
@@ -82,7 +80,7 @@ body {
 }
 
 .navbar-container {
-    max-width: 1400px;
+    max-width: 1280px;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
@@ -93,67 +91,56 @@ body {
 .navbar-brand {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
     text-decoration: none;
     color: var(--text-primary);
 }
 
 .navbar-brand h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    /* Effet de texte gradie neon */
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
-/* Icone du logo avec animation de pulsation */
+/* Icone du logo - style simple GitHub */
 .logo-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    border-radius: 10px;
+    width: 32px;
+    height: 32px;
+    background: var(--accent-primary);
+    border-radius: var(--border-radius);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
-    animation: pulse 2s infinite;
-}
-
-/* Animation de pulsation pour le logo */
-@keyframes pulse {
-    0%, 100% { box-shadow: var(--glow-primary); }
-    50% { box-shadow: 0 0 30px rgba(0, 240, 255, 0.5); }
+    font-size: 1rem;
 }
 
 /* Liens de navigation */
 .navbar-nav {
     display: flex;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-sm);
     list-style: none;
 }
 
 .navbar-nav a {
-    color: var(--text-secondary);
+    color: var(--text-primary);
     text-decoration: none;
     padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    border-radius: var(--border-radius);
+    transition: background-color 0.15s ease;
     font-weight: 500;
+    font-size: 14px;
 }
 
 /* Effet hover sur les liens */
 .navbar-nav a:hover {
-    color: var(--accent-primary);
-    background: rgba(0, 240, 255, 0.1);
+    background: var(--bg-hover);
 }
 
 /* Lien actif */
 .navbar-nav a.active {
-    color: var(--accent-primary);
-    background: rgba(0, 240, 255, 0.15);
-    border: 1px solid rgba(0, 240, 255, 0.3);
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+    border-bottom: 2px solid var(--accent-primary);
 }
 
 /* ============================================================
@@ -161,7 +148,7 @@ body {
    Zone de contenu centree avec largeur maximale
    ============================================================ */
 .main-container {
-    max-width: 1400px;
+    max-width: 1280px;
     margin: 0 auto;
     padding: var(--spacing-xl);
 }
@@ -172,38 +159,33 @@ body {
    ============================================================ */
 .page-header {
     margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .page-header h2 {
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 600;
     margin-bottom: var(--spacing-sm);
     color: var(--text-primary);
 }
 
 .page-header p {
     color: var(--text-secondary);
-    font-size: 1.1rem;
+    font-size: 14px;
 }
 
 /* ============================================================
    CARTES (Cards)
    Composant reutilisable pour les sections de contenu
+   Style GitHub Box
    ============================================================ */
 .card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-lg);
     padding: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
-    /* Transition pour effet hover */
-    transition: all 0.3s ease;
-}
-
-/* Effet hover sur les cartes */
-.card:hover {
-    border-color: rgba(0, 240, 255, 0.3);
-    box-shadow: var(--glow-primary);
 }
 
 .card-header {
@@ -216,7 +198,7 @@ body {
 }
 
 .card-header h3 {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
 }
@@ -227,7 +209,7 @@ body {
    ============================================================ */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
 }
@@ -236,54 +218,52 @@ body {
 .stat-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-lg);
     padding: var(--spacing-lg);
     display: flex;
     align-items: center;
     gap: var(--spacing-lg);
-    transition: all 0.3s ease;
+    transition: border-color 0.15s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-5px);
-    border-color: rgba(0, 240, 255, 0.3);
-    box-shadow: var(--glow-primary);
+    border-color: var(--border-color-emphasis);
 }
 
 /* Icone de la statistique */
 .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
 }
 
-/* Variantes de couleur pour les icones */
-.stat-icon.cyan { background: rgba(0, 240, 255, 0.15); color: var(--accent-primary); }
-.stat-icon.violet { background: rgba(139, 92, 246, 0.15); color: var(--accent-secondary); }
-.stat-icon.green { background: rgba(16, 185, 129, 0.15); color: var(--accent-success); }
-.stat-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+/* Variantes de couleur pour les icones - palette coherente */
+.stat-icon.cyan { background: rgba(240, 165, 0, 0.15); color: var(--accent-primary); }
+.stat-icon.violet { background: rgba(240, 165, 0, 0.1); color: var(--accent-secondary); }
+.stat-icon.green { background: rgba(35, 134, 54, 0.15); color: var(--accent-success); }
+.stat-icon.red { background: rgba(218, 54, 51, 0.15); color: var(--accent-danger); }
 
 /* Contenu textuel de la statistique */
 .stat-content h4 {
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: 1.75rem;
+    font-weight: 600;
     color: var(--text-primary);
     line-height: 1.2;
 }
 
 .stat-content p {
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-top: var(--spacing-sm);
+    font-size: 12px;
+    margin-top: 4px;
 }
 
 /* ============================================================
    TABLEAUX
-   Style des tableaux de donnees
+   Style des tableaux de donnees - style GitHub
    ============================================================ */
 .table-container {
     overflow-x: auto;
@@ -293,69 +273,67 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: 13px;
 }
 
 /* En-tetes de colonnes */
 thead th {
     background: var(--bg-tertiary);
     color: var(--text-primary);
-    padding: var(--spacing-md);
+    padding: 12px 16px;
     text-align: left;
     font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid var(--accent-primary);
+    font-size: 12px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 /* Cellules du corps */
 tbody td {
-    padding: var(--spacing-md);
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
     color: var(--text-secondary);
 }
 
 /* Alternance des couleurs de lignes */
 tbody tr:nth-child(even) {
-    background: rgba(31, 41, 55, 0.5);
+    background: var(--bg-tertiary);
 }
 
 /* Effet hover sur les lignes */
 tbody tr:hover {
-    background: rgba(0, 240, 255, 0.05);
+    background: var(--bg-hover);
 }
 
 /* ============================================================
    BADGES DE STATUT
-   Indicateurs visuels pour les differents etats
+   Indicateurs visuels pour les differents etats - style GitHub labels
    ============================================================ */
 .badge {
     display: inline-block;
-    padding: 0.25rem 0.75rem;
+    padding: 3px 8px;
     border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
 }
 
 /* Variantes de badges */
-.badge-success { background: rgba(16, 185, 129, 0.2); color: var(--accent-success); }
-.badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--accent-warning); }
-.badge-danger { background: rgba(239, 68, 68, 0.2); color: var(--accent-danger); }
-.badge-info { background: rgba(0, 240, 255, 0.2); color: var(--accent-primary); }
-.badge-secondary { background: rgba(107, 114, 128, 0.2); color: var(--text-secondary); }
+.badge-success { background: rgba(35, 134, 54, 0.2); color: #3fb950; }
+.badge-warning { background: rgba(210, 153, 34, 0.2); color: #d29922; }
+.badge-danger { background: rgba(218, 54, 51, 0.2); color: #f85149; }
+.badge-info { background: rgba(240, 165, 0, 0.2); color: var(--accent-primary); }
+.badge-secondary { background: var(--bg-tertiary); color: var(--text-secondary); }
 
 /* Badge de severite avec niveaux */
-.severity-1 { background: rgba(16, 185, 129, 0.2); color: var(--accent-success); }
-.severity-2 { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-.severity-3 { background: rgba(245, 158, 11, 0.2); color: var(--accent-warning); }
-.severity-4 { background: rgba(249, 115, 22, 0.2); color: #f97316; }
-.severity-5 { background: rgba(239, 68, 68, 0.2); color: var(--accent-danger); }
+.severity-1 { background: rgba(35, 134, 54, 0.2); color: #3fb950; }
+.severity-2 { background: rgba(87, 171, 90, 0.2); color: #56d364; }
+.severity-3 { background: rgba(210, 153, 34, 0.2); color: #d29922; }
+.severity-4 { background: rgba(219, 109, 40, 0.2); color: #db6d28; }
+.severity-5 { background: rgba(218, 54, 51, 0.2); color: #f85149; }
 
 /* ============================================================
    FORMULAIRES
-   Style des champs de saisie et boutons
+   Style des champs de saisie et boutons - style GitHub
    ============================================================ */
 .form-group {
     margin-bottom: var(--spacing-lg);
@@ -363,29 +341,29 @@ tbody tr:hover {
 
 .form-group label {
     display: block;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     margin-bottom: var(--spacing-sm);
-    font-weight: 500;
-    font-size: 0.9rem;
+    font-weight: 600;
+    font-size: 14px;
 }
 
 /* Champs de saisie */
 .form-control {
     width: 100%;
-    padding: 0.75rem 1rem;
-    background: var(--bg-tertiary);
+    padding: 8px 12px;
+    background: var(--bg-primary);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     color: var(--text-primary);
-    font-size: 1rem;
-    transition: all 0.3s ease;
+    font-size: 14px;
+    transition: border-color 0.15s ease;
 }
 
 /* Etat focus des champs */
 .form-control:focus {
     outline: none;
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.1);
+    background: var(--bg-primary);
 }
 
 /* Placeholder */
@@ -396,10 +374,10 @@ tbody tr:hover {
 /* Select personnalise */
 select.form-control {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b949e' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 1rem center;
-    padding-right: 2.5rem;
+    background-position: right 12px center;
+    padding-right: 36px;
 }
 
 /* Textarea */
@@ -410,54 +388,58 @@ textarea.form-control {
 
 /* ============================================================
    BOUTONS
-   Differents styles de boutons
+   Differents styles de boutons - style GitHub
    ============================================================ */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--spacing-sm);
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
     text-decoration: none;
+    line-height: 1.5;
 }
 
-/* Bouton principal (cyan neon) */
+/* Bouton principal - Jaune Mangue */
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent-primary), #00c4cc);
-    color: var(--bg-primary);
+    background: var(--accent-primary);
+    color: #000;
+    border-color: var(--accent-primary);
 }
 
 .btn-primary:hover {
-    box-shadow: var(--glow-primary);
-    transform: translateY(-2px);
+    background: var(--accent-primary-hover);
+    border-color: var(--accent-primary-hover);
 }
 
-/* Bouton secondaire (violet) */
+/* Bouton secondaire - style GitHub secondary */
 .btn-secondary {
-    background: linear-gradient(135deg, var(--accent-secondary), #7c3aed);
-    color: white;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
 }
 
 .btn-secondary:hover {
-    box-shadow: var(--glow-secondary);
-    transform: translateY(-2px);
+    background: var(--bg-hover);
+    border-color: var(--border-color-emphasis);
 }
 
 /* Bouton outline */
 .btn-outline {
     background: transparent;
-    border: 1px solid var(--accent-primary);
-    color: var(--accent-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
 .btn-outline:hover {
-    background: rgba(0, 240, 255, 0.1);
+    background: var(--bg-tertiary);
+    border-color: var(--border-color-emphasis);
 }
 
 /* ============================================================
@@ -467,7 +449,7 @@ textarea.form-control {
 .filters-section {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-lg);
     padding: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
     display: flex;
@@ -483,10 +465,10 @@ textarea.form-control {
 
 .filter-group label {
     display: block;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     margin-bottom: var(--spacing-sm);
-    font-weight: 500;
-    font-size: 0.85rem;
+    font-weight: 600;
+    font-size: 12px;
 }
 
 /* ============================================================
@@ -501,44 +483,44 @@ textarea.form-control {
 
 .charts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
     gap: var(--spacing-xl);
 }
 
 /* ============================================================
    ONGLETS (Tabs)
-   Navigation entre les differentes vues
+   Navigation entre les differentes vues - style GitHub tabs
    ============================================================ */
 .tabs {
     display: flex;
-    gap: var(--spacing-sm);
+    gap: 0;
     margin-bottom: var(--spacing-lg);
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: var(--spacing-sm);
 }
 
 .tab {
     padding: var(--spacing-sm) var(--spacing-md);
     color: var(--text-secondary);
     text-decoration: none;
-    border-radius: 8px 8px 0 0;
-    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s ease;
+    font-size: 14px;
 }
 
 .tab:hover {
-    color: var(--accent-primary);
-    background: rgba(0, 240, 255, 0.1);
+    color: var(--text-primary);
 }
 
 .tab.active {
-    color: var(--accent-primary);
+    color: var(--text-primary);
     border-bottom: 2px solid var(--accent-primary);
-    background: rgba(0, 240, 255, 0.1);
+    font-weight: 600;
 }
 
 /* ============================================================
    MESSAGES FLASH
-   Notifications de succes/erreur
+   Notifications de succes/erreur - style GitHub alerts
    ============================================================ */
 .flash-messages {
     margin-bottom: var(--spacing-lg);
@@ -546,23 +528,24 @@ textarea.form-control {
 
 .flash {
     padding: var(--spacing-md) var(--spacing-lg);
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     margin-bottom: var(--spacing-sm);
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
+    font-size: 14px;
 }
 
 .flash-success {
-    background: rgba(16, 185, 129, 0.15);
-    border: 1px solid var(--accent-success);
-    color: var(--accent-success);
+    background: rgba(35, 134, 54, 0.15);
+    border: 1px solid rgba(35, 134, 54, 0.4);
+    color: #3fb950;
 }
 
 .flash-error {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid var(--accent-danger);
-    color: var(--accent-danger);
+    background: rgba(218, 54, 51, 0.15);
+    border: 1px solid rgba(218, 54, 51, 0.4);
+    color: #f85149;
 }
 
 /* ============================================================
@@ -608,51 +591,26 @@ textarea.form-control {
 }
 
 /* ============================================================
-   ANIMATIONS
-   Animations et transitions pour ameliorer l'UX
+   CODE ET ELEMENTS MONOSPACE
+   Style pour le code inline
    ============================================================ */
-
-/* Animation d'apparition */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+code {
+    background: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--accent-primary);
 }
 
-.card, .stat-card {
-    animation: fadeIn 0.5s ease;
-}
-
-/* Animation de scan cyber sur les bordures */
-@keyframes scan {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
-}
-
-.card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg,
-        transparent,
-        var(--accent-primary),
-        transparent);
-    background-size: 200% 100%;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.card:hover::before {
-    opacity: 1;
-    animation: scan 2s linear infinite;
-}
-
-/* Position relative pour les cartes (necessaire pour ::before) */
-.card {
-    position: relative;
-    overflow: hidden;
+pre {
+    background: var(--bg-tertiary);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.6;
 }
 
 /* ============================================================
@@ -663,9 +621,9 @@ textarea.form-control {
 .text-right { text-align: right; }
 .text-cyan { color: var(--accent-primary); }
 .text-violet { color: var(--accent-secondary); }
-.text-success { color: var(--accent-success); }
-.text-danger { color: var(--accent-danger); }
-.text-warning { color: var(--accent-warning); }
+.text-success { color: #3fb950; }
+.text-danger { color: #f85149; }
+.text-warning { color: #d29922; }
 .text-muted { color: var(--text-muted); }
 
 .mt-1 { margin-top: var(--spacing-sm); }
@@ -674,3 +632,62 @@ textarea.form-control {
 .mb-1 { margin-bottom: var(--spacing-sm); }
 .mb-2 { margin-bottom: var(--spacing-md); }
 .mb-3 { margin-bottom: var(--spacing-lg); }
+
+/* ============================================================
+   FOOTER
+   Style du pied de page
+   ============================================================ */
+footer {
+    border-top: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+footer p {
+    margin: 0;
+}
+
+/* ============================================================
+   LIENS
+   Style des liens hypertexte
+   ============================================================ */
+a {
+    color: var(--text-link);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================================
+   SEPARATEURS ET LIGNES
+   Styles pour les elements de separation
+   ============================================================ */
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: var(--spacing-lg) 0;
+}
+
+/* ============================================================
+   SCROLLBAR PERSONNALISEE
+   Style de la barre de defilement pour navigateurs WebKit
+   ============================================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-color-emphasis);
+}

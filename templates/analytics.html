@@ -280,9 +280,9 @@ HAVING COUNT(nm.id) > 0</pre>
  * Les donnees sont injectees depuis Flask via Jinja2
  */
 
-// Configuration globale de Chart.js pour le theme sombre
-Chart.defaults.color = '#9ca3af';  // Couleur du texte
-Chart.defaults.borderColor = '#374151';  // Couleur des bordures
+// Configuration globale de Chart.js pour le theme GitHub dark
+Chart.defaults.color = '#8b949e';  // Couleur du texte (gris GitHub)
+Chart.defaults.borderColor = '#30363d';  // Couleur des bordures (GitHub)
 
 /*
  * GRAPHIQUE 1: Evenements par type de menace (Bar Chart horizontal)
@@ -299,26 +299,26 @@ new Chart(threatCtx, {
             label: 'Nombre d\'evenements',
             // Donnees: compte d'evenements par type
             data: {{ events_by_threat | map(attribute='event_count') | list | tojson }},
-            // Couleurs des barres selon la severite
+            // Couleurs des barres selon la severite (palette GitHub + Jaune Mangue)
             backgroundColor: [
                 {% for event in events_by_threat %}
                     {% if event.severity_level >= 4 %}
-                        'rgba(239, 68, 68, 0.7)',  // Rouge pour haute severite
+                        'rgba(248, 81, 73, 0.7)',  // Rouge GitHub pour haute severite
                     {% elif event.severity_level >= 3 %}
-                        'rgba(245, 158, 11, 0.7)',  // Orange pour moyenne
+                        'rgba(210, 153, 34, 0.7)',  // Jaune/Orange GitHub pour moyenne
                     {% else %}
-                        'rgba(0, 240, 255, 0.7)',  // Cyan pour faible
+                        'rgba(240, 165, 0, 0.7)',  // Jaune Mangue pour faible
                     {% endif %}
                 {% endfor %}
             ],
             borderColor: [
                 {% for event in events_by_threat %}
                     {% if event.severity_level >= 4 %}
-                        'rgba(239, 68, 68, 1)',
+                        'rgba(248, 81, 73, 1)',
                     {% elif event.severity_level >= 3 %}
-                        'rgba(245, 158, 11, 1)',
+                        'rgba(210, 153, 34, 1)',
                     {% else %}
-                        'rgba(0, 240, 255, 1)',
+                        'rgba(240, 165, 0, 1)',
                     {% endif %}
                 {% endfor %}
             ],
@@ -355,21 +355,21 @@ new Chart(statusCtx, {
         labels: {{ events_by_status | map(attribute='status') | list | tojson }},
         datasets: [{
             data: {{ events_by_status | map(attribute='count') | list | tojson }},
-            // Couleurs fixes selon le statut
+            // Couleurs fixes selon le statut (palette GitHub)
             backgroundColor: [
                 {% for status in events_by_status %}
                     {% if status.status == 'resolved' %}
-                        'rgba(16, 185, 129, 0.7)',  // Vert: resolu
+                        'rgba(63, 185, 80, 0.7)',  // Vert GitHub: resolu
                     {% elif status.status == 'investigating' %}
-                        'rgba(245, 158, 11, 0.7)',  // Orange: en cours
+                        'rgba(240, 165, 0, 0.7)',  // Jaune Mangue: en cours
                     {% elif status.status == 'detected' %}
-                        'rgba(239, 68, 68, 0.7)',  // Rouge: detecte
+                        'rgba(248, 81, 73, 0.7)',  // Rouge GitHub: detecte
                     {% else %}
-                        'rgba(107, 114, 128, 0.7)',  // Gris: faux positif
+                        'rgba(110, 118, 129, 0.7)',  // Gris GitHub: faux positif
                     {% endif %}
                 {% endfor %}
             ],
-            borderColor: '#111827',  // Bordure sombre entre segments
+            borderColor: '#161b22',  // Bordure sombre GitHub entre segments
             borderWidth: 2
         }]
     },
@@ -398,15 +398,15 @@ new Chart(networkCtx, {
             {
                 label: 'Entrant (Mbps)',
                 data: {{ network_by_server | map(attribute='avg_bandwidth_in') | list | tojson }},
-                backgroundColor: 'rgba(0, 240, 255, 0.7)',
-                borderColor: 'rgba(0, 240, 255, 1)',
+                backgroundColor: 'rgba(240, 165, 0, 0.7)',  // Jaune Mangue
+                borderColor: 'rgba(240, 165, 0, 1)',
                 borderWidth: 1
             },
             {
                 label: 'Sortant (Mbps)',
                 data: {{ network_by_server | map(attribute='avg_bandwidth_out') | list | tojson }},
-                backgroundColor: 'rgba(139, 92, 246, 0.7)',
-                borderColor: 'rgba(139, 92, 246, 1)',
+                backgroundColor: 'rgba(110, 118, 129, 0.7)',  // Gris GitHub
+                borderColor: 'rgba(110, 118, 129, 1)',
                 borderWidth: 1
             }
         ]
@@ -439,12 +439,12 @@ new Chart(latencyCtx, {
         datasets: [{
             label: 'Latence moyenne (ms)',
             data: {{ network_by_server | map(attribute='avg_latency') | list | tojson }},
-            // Couleur conditionnelle: rouge si latence > 15ms
+            // Couleur conditionnelle: rouge GitHub si latence > 15ms, vert GitHub sinon
             backgroundColor: {{ network_by_server | map(attribute='avg_latency') | list | tojson }}.map(
-                v => v > 15 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(16, 185, 129, 0.7)'
+                v => v > 15 ? 'rgba(248, 81, 73, 0.7)' : 'rgba(63, 185, 80, 0.7)'
             ),
             borderColor: {{ network_by_server | map(attribute='avg_latency') | list | tojson }}.map(
-                v => v > 15 ? 'rgba(239, 68, 68, 1)' : 'rgba(16, 185, 129, 1)'
+                v => v > 15 ? 'rgba(248, 81, 73, 1)' : 'rgba(63, 185, 80, 1)'
             ),
             borderWidth: 1
         }]
