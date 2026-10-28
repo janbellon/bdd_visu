@@ -1,0 +1,289 @@
+<!--
+    Template: add.html (Page d'ajout de donnees)
+    Description: Formulaires pour ajouter des serveurs, menaces et evenements
+    Ce template permet l'insertion de donnees dans les differentes tables
+-->
+{% extends "base.html" %}
+
+{% block title %}Ajouter des donnees - CyberMetrics{% endblock %}
+
+{% block content %}
+<!--
+    EN-TETE DE PAGE
+    Titre et description de la page d'ajout
+-->
+<div class="page-header">
+    <h2>Ajouter des donnees</h2>
+    <p>Inserez de nouvelles entrees dans la base de donnees</p>
+</div>
+
+<!--
+    GRILLE DE FORMULAIRES
+    Trois formulaires en colonnes pour ajouter differents types de donnees
+    Chaque formulaire envoie des donnees en POST vers la meme route
+-->
+<div class="form-grid">
+    <!--
+        FORMULAIRE 1: AJOUT DE SERVEUR
+        Permet d'ajouter un nouveau serveur a surveiller
+        Les donnees sont inserees dans la table 'servers'
+    -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Nouveau serveur</h3>
+        </div>
+        <!--
+            Le formulaire utilise la methode POST
+            action pointe vers la meme route (add_data)
+            Le champ hidden 'form_type' identifie le type de formulaire
+        -->
+        <form method="POST" action="{{ url_for('add_data') }}">
+            <!-- Champ cache pour identifier le type de formulaire cote serveur -->
+            <input type="hidden" name="form_type" value="server">
+
+            <!-- Champ: Nom du serveur -->
+            <div class="form-group">
+                <label for="server_name">Nom du serveur</label>
+                <!--
+                    L'attribut 'required' rend le champ obligatoire cote client
+                    Le placeholder donne un exemple de valeur attendue
+                -->
+                <input type="text" id="server_name" name="name" class="form-control"
+                       placeholder="ex: web-prod-03" required>
+            </div>
+
+            <!-- Champ: Adresse IP -->
+            <div class="form-group">
+                <label for="server_ip">Adresse IP</label>
+                <!--
+                    Pattern valide les adresses IPv4 basiques
+                    Ne valide pas completement mais donne une indication
+                -->
+                <input type="text" id="server_ip" name="ip_address" class="form-control"
+                       placeholder="ex: 192.168.1.100" required
+                       pattern="[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}">
+            </div>
+
+            <!-- Champ: Type de serveur (liste deroulante) -->
+            <div class="form-group">
+                <label for="server_type">Type de serveur</label>
+                <select id="server_type" name="server_type" class="form-control" required>
+                    <option value="">-- Selectionnez --</option>
+                    <option value="web">Web</option>
+                    <option value="api">API</option>
+                    <option value="database">Database</option>
+                    <option value="cache">Cache</option>
+                    <option value="monitoring">Monitoring</option>
+                    <option value="backup">Backup</option>
+                    <option value="mail">Mail</option>
+                    <option value="dns">DNS</option>
+                </select>
+            </div>
+
+            <!-- Champ: Localisation (datacenter) -->
+            <div class="form-group">
+                <label for="server_location">Localisation</label>
+                <input type="text" id="server_location" name="location" class="form-control"
+                       placeholder="ex: Paris DC1">
+            </div>
+
+            <!-- Champ: Statut initial du serveur -->
+            <div class="form-group">
+                <label for="server_status">Statut</label>
+                <select id="server_status" name="status" class="form-control" required>
+                    <option value="active">Actif</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="offline">Hors ligne</option>
+                </select>
+            </div>
+
+            <!-- Bouton de soumission -->
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Ajouter le serveur
+            </button>
+        </form>
+    </div>
+
+    <!--
+        FORMULAIRE 2: AJOUT DE TYPE DE MENACE
+        Permet de definir un nouveau type de menace dans le catalogue
+        Les donnees sont inserees dans la table 'threat_types'
+    -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Nouveau type de menace</h3>
+        </div>
+        <form method="POST" action="{{ url_for('add_data') }}">
+            <input type="hidden" name="form_type" value="threat">
+
+            <!-- Champ: Nom de la menace -->
+            <div class="form-group">
+                <label for="threat_name">Nom de la menace</label>
+                <input type="text" id="threat_name" name="name" class="form-control"
+                       placeholder="ex: Buffer Overflow" required>
+            </div>
+
+            <!-- Champ: Niveau de severite (1-5) -->
+            <div class="form-group">
+                <label for="threat_severity">Niveau de severite (1-5)</label>
+                <!--
+                    Input type="number" avec min/max pour contraindre les valeurs
+                    La contrainte CHECK dans la table PostgreSQL valide aussi cote serveur
+                -->
+                <select id="threat_severity" name="severity_level" class="form-control" required>
+                    <option value="1">1 - Faible</option>
+                    <option value="2">2 - Modere</option>
+                    <option value="3">3 - Moyen</option>
+                    <option value="4">4 - Eleve</option>
+                    <option value="5">5 - Critique</option>
+                </select>
+            </div>
+
+            <!-- Champ: Categorie de la menace -->
+            <div class="form-group">
+                <label for="threat_category">Categorie</label>
+                <select id="threat_category" name="category" class="form-control" required>
+                    <option value="">-- Selectionnez --</option>
+                    <option value="network">Reseau</option>
+                    <option value="application">Application</option>
+                    <option value="authentication">Authentification</option>
+                    <option value="data">Donnees</option>
+                    <option value="malware">Malware</option>
+                    <option value="system">Systeme</option>
+                    <option value="social">Social Engineering</option>
+                </select>
+            </div>
+
+            <!-- Champ: Description detaillee -->
+            <div class="form-group">
+                <label for="threat_description">Description</label>
+                <!--
+                    Textarea pour les textes longs
+                    Permet de decrire en detail le type de menace
+                -->
+                <textarea id="threat_description" name="description" class="form-control"
+                          placeholder="Description de la menace..." rows="4"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                Ajouter la menace
+            </button>
+        </form>
+    </div>
+
+    <!--
+        FORMULAIRE 3: AJOUT D'EVENEMENT DE SECURITE
+        Permet d'enregistrer un nouvel evenement/incident
+        Les donnees sont inserees dans la table 'security_events'
+        Ce formulaire utilise des FOREIGN KEYS vers servers et threat_types
+    -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Nouvel evenement</h3>
+        </div>
+        <form method="POST" action="{{ url_for('add_data') }}">
+            <input type="hidden" name="form_type" value="event">
+
+            <!--
+                Champ: Serveur concerne (FOREIGN KEY)
+                La liste est generee dynamiquement depuis la base de donnees
+                Le value est l'ID du serveur (pour la jointure)
+            -->
+            <div class="form-group">
+                <label for="event_server">Serveur concerne</label>
+                <select id="event_server" name="server_id" class="form-control" required>
+                    <option value="">-- Selectionnez un serveur --</option>
+                    <!--
+                        Boucle Jinja2 sur la liste des serveurs
+                        Cette liste est passee par la route Flask
+                    -->
+                    {% for server in servers %}
+                    <option value="{{ server.id }}">{{ server.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!--
+                Champ: Type de menace (FOREIGN KEY)
+                Lie l'evenement a un type de menace existant
+            -->
+            <div class="form-group">
+                <label for="event_threat">Type de menace</label>
+                <select id="event_threat" name="threat_type_id" class="form-control" required>
+                    <option value="">-- Selectionnez une menace --</option>
+                    {% for threat in threat_types %}
+                    <!--
+                        Affiche le nom et le niveau de severite pour aider l'utilisateur
+                    -->
+                    <option value="{{ threat.id }}">
+                        {{ threat.name }} (Niveau {{ threat.severity_level }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Champ: IP source de l'attaque -->
+            <div class="form-group">
+                <label for="event_source_ip">IP Source</label>
+                <input type="text" id="event_source_ip" name="source_ip" class="form-control"
+                       placeholder="ex: 45.33.32.156" required>
+            </div>
+
+            <!-- Champ: Statut de l'evenement -->
+            <div class="form-group">
+                <label for="event_status">Statut</label>
+                <select id="event_status" name="status" class="form-control" required>
+                    <option value="detected">Detecte</option>
+                    <option value="investigating">En investigation</option>
+                    <option value="resolved">Resolu</option>
+                    <option value="false_positive">Faux positif</option>
+                </select>
+            </div>
+
+            <!-- Champ: Details supplementaires -->
+            <div class="form-group">
+                <label for="event_details">Details</label>
+                <textarea id="event_details" name="details" class="form-control"
+                          placeholder="Details de l'evenement..." rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Enregistrer l'evenement
+            </button>
+        </form>
+    </div>
+</div>
+
+<!--
+    SECTION: AIDE
+    Explications sur les formulaires et les relations entre tables
+-->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3>A propos des donnees</h3>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div>
+            <h4 class="text-cyan" style="margin-bottom: 0.5rem;">Serveurs</h4>
+            <p class="text-muted" style="font-size: 0.9rem;">
+                Les serveurs representent les machines de votre infrastructure.
+                Chaque serveur peut avoir plusieurs evenements de securite associes.
+            </p>
+        </div>
+        <div>
+            <h4 class="text-violet" style="margin-bottom: 0.5rem;">Types de menaces</h4>
+            <p class="text-muted" style="font-size: 0.9rem;">
+                Le catalogue des menaces definit les differents types d'attaques
+                detectables avec leur niveau de severite de 1 (faible) a 5 (critique).
+            </p>
+        </div>
+        <div>
+            <h4 class="text-warning" style="margin-bottom: 0.5rem;">Evenements</h4>
+            <p class="text-muted" style="font-size: 0.9rem;">
+                Les evenements enregistrent les incidents detectes. Ils sont lies
+                a un serveur et un type de menace via des cles etrangeres (FOREIGN KEY).
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

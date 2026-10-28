@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<!--
+    Template de base pour CyberMetrics
+    Ce fichier definit la structure HTML commune a toutes les pages
+    Les autres templates heritent de ce fichier via Jinja2
+-->
+<head>
+    <!-- Encodage des caracteres en UTF-8 pour supporter les accents -->
+    <meta charset="UTF-8">
+    <!-- Viewport responsive pour les appareils mobiles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Titre de la page - peut etre personnalise par les templates enfants -->
+    <title>{% block title %}CyberMetrics{% endblock %}</title>
+
+    <!-- Police Google Fonts Inter pour une typographie moderne -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Feuille de style principale de l'application -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Chart.js pour les visualisations graphiques -->
+    <!-- CDN officiel de Chart.js version 4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Bloc pour CSS supplementaire specifique a certaines pages -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!--
+        BARRE DE NAVIGATION
+        Navigation principale fixe en haut de page
+        Contient le logo, le nom de l'app et les liens de navigation
+    -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <!-- Logo et nom de l'application -->
+            <a href="{{ url_for('index') }}" class="navbar-brand">
+                <!-- Icone du logo avec symbole de bouclier -->
+                <div class="logo-icon">🛡️</div>
+                <h1>CyberMetrics</h1>
+            </a>
+
+            <!-- Liens de navigation principaux -->
+            <ul class="navbar-nav">
+                <!--
+                    Chaque lien utilise url_for() pour generer les URLs dynamiquement
+                    La classe 'active' est ajoutee conditionnellement via Jinja2
+                -->
+                <li>
+                    <a href="{{ url_for('index') }}"
+                       class="{{ 'active' if request.endpoint == 'index' else '' }}">
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('add_data') }}"
+                       class="{{ 'active' if request.endpoint == 'add_data' else '' }}">
+                        Ajouter
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('view_tables') }}"
+                       class="{{ 'active' if request.endpoint == 'view_tables' else '' }}">
+                        Tables
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('analytics') }}"
+                       class="{{ 'active' if request.endpoint == 'analytics' else '' }}">
+                        Analytics
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!--
+        CONTENEUR PRINCIPAL
+        Zone de contenu principale avec largeur maximale centree
+    -->
+    <main class="main-container">
+        <!--
+            MESSAGES FLASH
+            Affiche les messages de notification (succes, erreur, etc.)
+            Ces messages sont definis dans les routes Flask avec flash()
+        -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">
+                            <!-- Icone selon le type de message -->
+                            {% if category == 'success' %}✓{% else %}⚠{% endif %}
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!--
+            CONTENU DE LA PAGE
+            Ce bloc est remplace par le contenu specifique de chaque page
+        -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!--
+        PIED DE PAGE
+        Information de copyright et version
+    -->
+    <footer style="text-align: center; padding: 2rem; color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top: 2rem;">
+        <p>CyberMetrics v1.0 - Plateforme d'analyse de securite</p>
+        <p style="font-size: 0.8rem; margin-top: 0.5rem;">Proof of Concept - Flask + PostgreSQL</p>
+    </footer>
+
+    <!-- Bloc pour JavaScript supplementaire specifique a certaines pages -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

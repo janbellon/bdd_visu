@@ -1,0 +1,271 @@
+<!--
+    Template: tables.html (Visualisation des tables)
+    Description: Affiche le contenu brut des tables de la base de donnees
+    Permet de filtrer par table specifique via les onglets
+-->
+{% extends "base.html" %}
+
+{% block title %}Tables - CyberMetrics{% endblock %}
+
+{% block content %}
+<!--
+    EN-TETE DE PAGE
+    Titre et description de la page de visualisation des tables
+-->
+<div class="page-header">
+    <h2>Contenu des tables</h2>
+    <p>Visualisation des donnees brutes stockees dans PostgreSQL</p>
+</div>
+
+<!--
+    ONGLETS DE FILTRAGE
+    Permet de filtrer l'affichage par table specifique
+    Les liens utilisent des parametres GET (?table=nom_table)
+-->
+<div class="tabs">
+    <!--
+        Onglet "Toutes": affiche toutes les tables
+        La classe 'active' est ajoutee si aucun filtre n'est selectionne
+    -->
+    <a href="{{ url_for('view_tables') }}"
+       class="tab {{ 'active' if selected_table == 'all' else '' }}">
+        Toutes les tables
+    </a>
+    <!--
+        Onglets pour chaque table individuelle
+        Boucle sur la liste des noms de tables passee par Flask
+    -->
+    {% for table_name in table_names %}
+    <a href="{{ url_for('view_tables', table=table_name) }}"
+       class="tab {{ 'active' if selected_table == table_name else '' }}">
+        {{ table_name }}
+    </a>
+    {% endfor %}
+</div>
+
+<!--
+    AFFICHAGE DES TABLES
+    Boucle sur les donnees de chaque table
+    tables_data est un dictionnaire {nom_table: {columns: [...], rows: [...]}}
+-->
+{% for table_name, table_info in tables_data.items() %}
+<div class="card">
+    <!--
+        En-tete de la carte avec nom de la table et compteur
+    -->
+    <div class="card-header">
+        <h3>
+            <!--
+                Icone differente selon le type de table
+                Utilise un dictionnaire Jinja2 inline pour le mapping
+            -->
+            {% set icons = {
+                'servers': '🖥️',
+                'threat_types': '⚠️',
+                'security_events': '🔒',
+                'network_metrics': '📊'
+            } %}
+            {{ icons.get(table_name, '📋') }}
+            {{ table_name }}
+        </h3>
+        <!--
+            Badge indiquant le nombre d'enregistrements
+            table_info.rows contient la liste des lignes
+        -->
+        <span class="badge badge-info">
+            {{ table_info.rows | length }} enregistrements
+        </span>
+    </div>
+
+    <!--
+        CONTENEUR DU TABLEAU
+        overflow-x: auto permet le scroll horizontal sur mobile
+    -->
+    <div class="table-container">
+        <table>
+            <!--
+                EN-TETES DE COLONNES
+                Generes dynamiquement depuis les noms de colonnes SQL
+                table_info.columns contient la liste des noms de colonnes
+            -->
+            <thead>
+                <tr>
+                    {% for column in table_info.columns %}
+                    <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <!--
+                CORPS DU TABLEAU
+                Affiche chaque ligne de la table
+                table_info.rows est une liste de dictionnaires (RealDictCursor)
+            -->
+            <tbody>
+                {% for row in table_info.rows %}
+                <tr>
+                    <!--
+                        Boucle sur les colonnes pour afficher les valeurs
+                        dans le bon ordre
+                    -->
+                    {% for column in table_info.columns %}
+                    <td>
+                        <!--
+                            Formatage conditionnel selon le type de donnee
+                            et le nom de la colonne
+                        -->
+                        {% set value = row[column] %}
+
+                        <!--
+                            Formatage special pour les colonnes de statut
+                            Affiche un badge colore
+                        -->
+                        {% if column == 'status' %}
+                            {% set status_class = {
+                                'active': 'success',
+                                'maintenance': 'warning',
+                                'offline': 'danger',
+                                'detected': 'danger',
+                                'investigating': 'warning',
+                                'resolved': 'success',
+                                'false_positive': 'secondary'
+                            } %}
+                            <span class="badge badge-{{ status_class.get(value, 'info') }}">
+                                {{ value }}
+                            </span>
+
+                        <!--
+                            Formatage special pour les niveaux de severite
+                        -->
+                        {% elif column == 'severity_level' and value %}
+                            <span class="badge severity-{{ value }}">
+                                Niveau {{ value }}
+                            </span>
+
+                        <!--
+                            Formatage des adresses IP en police monospace
+                        -->
+                        {% elif column in ['ip_address', 'source_ip'] and value %}
+                            <code style="color: var(--accent-primary);">{{ value }}</code>
+
+                        <!--
+                            Formatage des timestamps en date lisible
+                            Les objets datetime ont une methode strftime
+                        -->
+                        {% elif column in ['created_at', 'event_timestamp', 'timestamp'] and value %}
+                            {{ value.strftime('%d/%m/%Y %H:%M:%S') }}
+
+                        <!--
+                            Formatage des nombres decimaux (metriques)
+                        -->
+                        {% elif column in ['bandwidth_in', 'bandwidth_out', 'latency_ms'] and value %}
+                            {{ "%.2f"|format(value) }}
+
+                        <!--
+                            Troncature des textes longs (descriptions)
+                        -->
+                        {% elif column in ['description', 'details'] and value %}
+                            {% if value | length > 50 %}
+                                {{ value[:50] }}...
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+
+                        <!--
+                            Affichage par defaut pour les autres colonnes
+                            Gere le cas ou la valeur est None
+                        -->
+                        {% else %}
+                            {{ value if value is not none else '-' }}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% else %}
+                <!--
+                    Message si la table est vide
+                -->
+                <tr>
+                    <td colspan="{{ table_info.columns | length }}" class="text-center text-muted">
+                        Aucune donnee dans cette table
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+
+<!--
+    SECTION: SCHEMA DE LA BASE DE DONNEES
+    Affiche les relations entre les tables pour comprendre la structure
+-->
+<div class="card">
+    <div class="card-header">
+        <h3>Schema de la base de donnees</h3>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        <!--
+            Description de la table servers
+        -->
+        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--accent-primary);">
+            <h4 class="text-cyan" style="margin-bottom: 0.75rem;">servers</h4>
+            <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                <strong>Cle primaire:</strong> id (SERIAL)
+            </p>
+            <p class="text-muted" style="font-size: 0.85rem;">
+                Stocke les informations sur les serveurs surveilles.
+                Colonnes: name, ip_address, server_type, location, status, created_at
+            </p>
+        </div>
+
+        <!--
+            Description de la table threat_types
+        -->
+        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--accent-secondary);">
+            <h4 class="text-violet" style="margin-bottom: 0.75rem;">threat_types</h4>
+            <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                <strong>Cle primaire:</strong> id (SERIAL)
+            </p>
+            <p class="text-muted" style="font-size: 0.85rem;">
+                Catalogue des types de menaces detectables.
+                Colonnes: name, severity_level (1-5), description, category
+            </p>
+        </div>
+
+        <!--
+            Description de la table security_events avec relations
+        -->
+        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--accent-warning);">
+            <h4 class="text-warning" style="margin-bottom: 0.75rem;">security_events</h4>
+            <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                <strong>Cle primaire:</strong> id (SERIAL)
+            </p>
+            <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                <strong>Cles etrangeres:</strong><br>
+                - server_id → servers(id)<br>
+                - threat_type_id → threat_types(id)
+            </p>
+            <p class="text-muted" style="font-size: 0.85rem;">
+                Journal des evenements de securite detectes.
+            </p>
+        </div>
+
+        <!--
+            Description de la table network_metrics avec relation
+        -->
+        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--accent-success);">
+            <h4 class="text-success" style="margin-bottom: 0.75rem;">network_metrics</h4>
+            <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                <strong>Cle primaire:</strong> id (SERIAL)
+            </p>
+            <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                <strong>Cle etrangere:</strong> server_id → servers(id)
+            </p>
+            <p class="text-muted" style="font-size: 0.85rem;">
+                Metriques reseau collectees: bandwidth, latency, connections.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

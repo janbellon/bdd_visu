@@ -1,0 +1,486 @@
+<!--
+    Template: analytics.html (Visualisations graphiques)
+    Description: Page d'analytique avec graphiques Chart.js et filtres
+    Les donnees proviennent de requetes SQL complexes avec jointures
+-->
+{% extends "base.html" %}
+
+{% block title %}Analytics - CyberMetrics{% endblock %}
+
+{% block content %}
+<!--
+    EN-TETE DE PAGE
+-->
+<div class="page-header">
+    <h2>Analytics</h2>
+    <p>Visualisations et statistiques basees sur des requetes SQL avec jointures</p>
+</div>
+
+<!--
+    SECTION DES FILTRES
+    Permet de filtrer les donnees par periode et par serveur
+    Les valeurs sont transmises via parametres GET dans l'URL
+-->
+<div class="filters-section">
+    <!--
+        Filtre par periode temporelle
+        Utilise un formulaire GET pour recharger la page avec les filtres
+    -->
+    <div class="filter-group">
+        <label for="filter-days">Periode</label>
+        <!--
+            Select avec les options de periode
+            L'option selectionnee est determinee par current_days (venant de Flask)
+        -->
+        <select id="filter-days" class="form-control" onchange="applyFilters()">
+            <option value="1" {{ 'selected' if current_days == 1 else '' }}>Dernieres 24h</option>
+            <option value="7" {{ 'selected' if current_days == 7 else '' }}>7 derniers jours</option>
+            <option value="14" {{ 'selected' if current_days == 14 else '' }}>14 derniers jours</option>
+            <option value="30" {{ 'selected' if current_days == 30 else '' }}>30 derniers jours</option>
+            <option value="90" {{ 'selected' if current_days == 90 else '' }}>90 derniers jours</option>
+        </select>
+    </div>
+
+    <!--
+        Filtre par serveur specifique
+        La liste des serveurs vient de la base de donnees
+    -->
+    <div class="filter-group">
+        <label for="filter-server">Serveur</label>
+        <select id="filter-server" class="form-control" onchange="applyFilters()">
+            <option value="all" {{ 'selected' if current_server == 'all' else '' }}>Tous les serveurs</option>
+            <!--
+                Boucle sur la liste des serveurs passee par Flask
+            -->
+            {% for server in servers %}
+            <option value="{{ server.id }}" {{ 'selected' if current_server|string == server.id|string else '' }}>
+                {{ server.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Bouton pour appliquer les filtres -->
+    <div class="filter-group" style="align-self: flex-end;">
+        <button class="btn btn-primary" onclick="applyFilters()">
+            Appliquer
+        </button>
+    </div>
+</div>
+
+<!--
+    GRILLE DES GRAPHIQUES
+    Disposition en grille responsive avec 2 colonnes
+-->
+<div class="charts-grid">
+    <!--
+        GRAPHIQUE 1: Evenements par type de menace
+        Donnees issues d'une requete SQL avec JOINTURE entre
+        security_events et threat_types
+    -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Evenements par type de menace</h3>
+            <span class="badge badge-info">JOIN threat_types</span>
+        </div>
+        <!--
+            Canvas pour Chart.js
+            L'ID est utilise pour referencer le graphique en JavaScript
+        -->
+        <div class="chart-container">
+            <canvas id="threatChart"></canvas>
+        </div>
+        <!--
+            Explication de la requete SQL utilisee
+        -->
+        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-tertiary); border-radius: 8px;">
+            <p class="text-muted" style="font-size: 0.8rem;">
+                <strong>Requete SQL:</strong> JOIN entre security_events et threat_types
+                pour compter les evenements par type de menace avec leur severite.
+            </p>
+        </div>
+    </div>
+
+    <!--
+        GRAPHIQUE 2: Distribution par statut
+        Camembert montrant la repartition des statuts d'evenements
+    -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Distribution par statut</h3>
+            <span class="badge badge-secondary">GROUP BY status</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="statusChart"></canvas>
+        </div>
+        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-tertiary); border-radius: 8px;">
+            <p class="text-muted" style="font-size: 0.8rem;">
+                <strong>Requete SQL:</strong> Agregation avec GROUP BY sur le statut,
+                incluant la severite moyenne via JOIN avec threat_types.
+            </p>
+        </div>
+    </div>
+
+    <!--
+        GRAPHIQUE 3: Metriques reseau par serveur
+        Donnees issues d'une JOINTURE entre network_metrics et servers
+    -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Bande passante par serveur</h3>
+            <span class="badge badge-info">JOIN servers + AVG()</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="networkChart"></canvas>
+        </div>
+        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-tertiary); border-radius: 8px;">
+            <p class="text-muted" style="font-size: 0.8rem;">
+                <strong>Requete SQL:</strong> JOIN entre network_metrics et servers
+                avec AVG() pour calculer les moyennes de bande passante par serveur.
+            </p>
+        </div>
+    </div>
+
+    <!--
+        GRAPHIQUE 4: Latence moyenne par serveur
+    -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Latence moyenne (ms)</h3>
+            <span class="badge badge-warning">AVG(latency_ms)</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="latencyChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!--
+    SECTION: TOP 5 SOURCES D'ATTAQUES
+    Tableau montrant les IP sources les plus frequentes
+    Utilise une requete avec JOINTURE et agregation
+-->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3>Top 5 sources d'attaques</h3>
+        <span class="badge badge-danger">GROUP BY + ARRAY_AGG()</span>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>IP Source</th>
+                    <th>Nombre d'attaques</th>
+                    <th>Severite moyenne</th>
+                    <th>Types de menaces</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attacker in top_attackers %}
+                <tr>
+                    <td><code style="color: var(--accent-danger);">{{ attacker.source_ip }}</code></td>
+                    <td>
+                        <span class="badge badge-danger">{{ attacker.attack_count }}</span>
+                    </td>
+                    <td>
+                        <!--
+                            Affichage de la severite avec couleur conditionnelle
+                        -->
+                        {% set sev = attacker.avg_severity | float %}
+                        <span class="badge severity-{{ sev | round | int }}">
+                            {{ "%.1f" | format(sev) }}
+                        </span>
+                    </td>
+                    <td>
+                        <!--
+                            Liste des types de menaces (ARRAY_AGG dans la requete SQL)
+                            threat_types est un tableau PostgreSQL converti en liste Python
+                        -->
+                        {% for threat in attacker.threat_types %}
+                            <span class="badge badge-secondary" style="margin: 2px;">{{ threat }}</span>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">
+                        Aucune donnee pour cette periode
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-tertiary); border-radius: 8px;">
+        <p class="text-muted" style="font-size: 0.8rem;">
+            <strong>Requete SQL complexe:</strong> Cette requete utilise JOIN avec threat_types,
+            GROUP BY sur source_ip, COUNT(*) pour le nombre d'attaques,
+            AVG() pour la severite moyenne, et ARRAY_AGG(DISTINCT) pour lister les types de menaces uniques.
+        </p>
+    </div>
+</div>
+
+<!--
+    SECTION: EXPLICATION DES JOINTURES SQL
+    Documentation pedagogique sur les requetes utilisees
+-->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3>Requetes SQL avec jointures utilisees</h3>
+    </div>
+    <div style="display: grid; gap: 1rem;">
+        <!--
+            Exemple de requete 1: INNER JOIN
+        -->
+        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; overflow-x: auto;">
+            <p class="text-cyan" style="margin-bottom: 0.5rem;">-- Evenements par type de menace (INNER JOIN)</p>
+            <pre style="color: var(--text-secondary); margin: 0;">SELECT tt.name, tt.severity_level, COUNT(se.id)
+FROM threat_types tt
+LEFT JOIN security_events se ON tt.id = se.threat_type_id
+GROUP BY tt.id, tt.name, tt.severity_level
+ORDER BY COUNT(se.id) DESC</pre>
+        </div>
+
+        <!--
+            Exemple de requete 2: DOUBLE JOIN
+        -->
+        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; overflow-x: auto;">
+            <p class="text-violet" style="margin-bottom: 0.5rem;">-- Evenements recents avec details (DOUBLE JOIN)</p>
+            <pre style="color: var(--text-secondary); margin: 0;">SELECT se.*, s.name AS server_name, tt.name AS threat_name
+FROM security_events se
+LEFT JOIN servers s ON se.server_id = s.id
+LEFT JOIN threat_types tt ON se.threat_type_id = tt.id
+ORDER BY se.event_timestamp DESC</pre>
+        </div>
+
+        <!--
+            Exemple de requete 3: JOIN avec agregation
+        -->
+        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; overflow-x: auto;">
+            <p class="text-warning" style="margin-bottom: 0.5rem;">-- Metriques reseau moyennes par serveur (JOIN + AVG)</p>
+            <pre style="color: var(--text-secondary); margin: 0;">SELECT s.name, AVG(nm.bandwidth_in), AVG(nm.latency_ms)
+FROM servers s
+LEFT JOIN network_metrics nm ON s.id = nm.server_id
+GROUP BY s.id, s.name
+HAVING COUNT(nm.id) > 0</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!--
+    BLOC JAVASCRIPT
+    Contient le code pour initialiser les graphiques Chart.js
+-->
+{% block extra_js %}
+<script>
+/*
+ * Script de visualisation pour la page Analytics
+ * Utilise Chart.js pour creer des graphiques interactifs
+ * Les donnees sont injectees depuis Flask via Jinja2
+ */
+
+// Configuration globale de Chart.js pour le theme sombre
+Chart.defaults.color = '#9ca3af';  // Couleur du texte
+Chart.defaults.borderColor = '#374151';  // Couleur des bordures
+
+/*
+ * GRAPHIQUE 1: Evenements par type de menace (Bar Chart horizontal)
+ * Les donnees viennent de la variable events_by_threat passee par Flask
+ */
+const threatCtx = document.getElementById('threatChart').getContext('2d');
+new Chart(threatCtx, {
+    type: 'bar',  // Type de graphique: barres
+    data: {
+        // Labels: noms des types de menaces
+        // Utilise Jinja2 pour injecter les donnees JSON
+        labels: {{ events_by_threat | map(attribute='threat_name') | list | tojson }},
+        datasets: [{
+            label: 'Nombre d\'evenements',
+            // Donnees: compte d'evenements par type
+            data: {{ events_by_threat | map(attribute='event_count') | list | tojson }},
+            // Couleurs des barres selon la severite
+            backgroundColor: [
+                {% for event in events_by_threat %}
+                    {% if event.severity_level >= 4 %}
+                        'rgba(239, 68, 68, 0.7)',  // Rouge pour haute severite
+                    {% elif event.severity_level >= 3 %}
+                        'rgba(245, 158, 11, 0.7)',  // Orange pour moyenne
+                    {% else %}
+                        'rgba(0, 240, 255, 0.7)',  // Cyan pour faible
+                    {% endif %}
+                {% endfor %}
+            ],
+            borderColor: [
+                {% for event in events_by_threat %}
+                    {% if event.severity_level >= 4 %}
+                        'rgba(239, 68, 68, 1)',
+                    {% elif event.severity_level >= 3 %}
+                        'rgba(245, 158, 11, 1)',
+                    {% else %}
+                        'rgba(0, 240, 255, 1)',
+                    {% endif %}
+                {% endfor %}
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        indexAxis: 'y',  // Barres horizontales
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }  // Pas de legende
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                grid: { color: 'rgba(55, 65, 81, 0.5)' }
+            },
+            y: {
+                grid: { display: false }
+            }
+        }
+    }
+});
+
+/*
+ * GRAPHIQUE 2: Distribution par statut (Doughnut Chart)
+ * Camembert montrant la repartition des statuts
+ */
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'doughnut',  // Type: anneau (camembert avec trou central)
+    data: {
+        labels: {{ events_by_status | map(attribute='status') | list | tojson }},
+        datasets: [{
+            data: {{ events_by_status | map(attribute='count') | list | tojson }},
+            // Couleurs fixes selon le statut
+            backgroundColor: [
+                {% for status in events_by_status %}
+                    {% if status.status == 'resolved' %}
+                        'rgba(16, 185, 129, 0.7)',  // Vert: resolu
+                    {% elif status.status == 'investigating' %}
+                        'rgba(245, 158, 11, 0.7)',  // Orange: en cours
+                    {% elif status.status == 'detected' %}
+                        'rgba(239, 68, 68, 0.7)',  // Rouge: detecte
+                    {% else %}
+                        'rgba(107, 114, 128, 0.7)',  // Gris: faux positif
+                    {% endif %}
+                {% endfor %}
+            ],
+            borderColor: '#111827',  // Bordure sombre entre segments
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',  // Legende a droite
+                labels: { padding: 15 }
+            }
+        }
+    }
+});
+
+/*
+ * GRAPHIQUE 3: Bande passante par serveur (Bar Chart groupe)
+ * Affiche bandwidth_in et bandwidth_out pour chaque serveur
+ */
+const networkCtx = document.getElementById('networkChart').getContext('2d');
+new Chart(networkCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ network_by_server | map(attribute='server_name') | list | tojson }},
+        datasets: [
+            {
+                label: 'Entrant (Mbps)',
+                data: {{ network_by_server | map(attribute='avg_bandwidth_in') | list | tojson }},
+                backgroundColor: 'rgba(0, 240, 255, 0.7)',
+                borderColor: 'rgba(0, 240, 255, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Sortant (Mbps)',
+                data: {{ network_by_server | map(attribute='avg_bandwidth_out') | list | tojson }},
+                backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                borderColor: 'rgba(139, 92, 246, 1)',
+                borderWidth: 1
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top' }
+        },
+        scales: {
+            x: { grid: { display: false } },
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(55, 65, 81, 0.5)' }
+            }
+        }
+    }
+});
+
+/*
+ * GRAPHIQUE 4: Latence moyenne par serveur (Bar Chart)
+ * Affiche la latence moyenne en millisecondes
+ */
+const latencyCtx = document.getElementById('latencyChart').getContext('2d');
+new Chart(latencyCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ network_by_server | map(attribute='server_name') | list | tojson }},
+        datasets: [{
+            label: 'Latence moyenne (ms)',
+            data: {{ network_by_server | map(attribute='avg_latency') | list | tojson }},
+            // Couleur conditionnelle: rouge si latence > 15ms
+            backgroundColor: {{ network_by_server | map(attribute='avg_latency') | list | tojson }}.map(
+                v => v > 15 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(16, 185, 129, 0.7)'
+            ),
+            borderColor: {{ network_by_server | map(attribute='avg_latency') | list | tojson }}.map(
+                v => v > 15 ? 'rgba(239, 68, 68, 1)' : 'rgba(16, 185, 129, 1)'
+            ),
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            x: { grid: { display: false } },
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(55, 65, 81, 0.5)' }
+            }
+        }
+    }
+});
+
+/*
+ * Fonction pour appliquer les filtres
+ * Construit l'URL avec les parametres GET et recharge la page
+ */
+function applyFilters() {
+    // Recuperation des valeurs des filtres
+    const days = document.getElementById('filter-days').value;
+    const server = document.getElementById('filter-server').value;
+
+    // Construction de l'URL avec les parametres
+    // url_for genere l'URL de base cote serveur
+    let url = "{{ url_for('analytics') }}";
+    url += `?days=${days}&server=${server}`;
+
+    // Redirection vers la nouvelle URL
+    window.location.href = url;
+}
+</script>
+{% endblock %}

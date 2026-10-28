@@ -1,0 +1,66 @@
+# Docker Compose pour l'application CyberMetrics
+# Ce fichier orchestre deux services: la base PostgreSQL et l'application Flask
+
+version: '3.8'
+
+services:
+  # Service de base de donnees PostgreSQL
+  db:
+    # Image officielle PostgreSQL version 15
+    image: postgres:15
+    # Nom du conteneur pour faciliter l'identification
+    container_name: cybermetrics_db
+    # Variables d'environnement pour configurer PostgreSQL
+    environment:
+      # Nom de la base de donnees a creer au demarrage
+      POSTGRES_DB: cybermetrics
+      # Utilisateur PostgreSQL
+      POSTGRES_USER: cyber_user
+      # Mot de passe PostgreSQL (a changer en production!)
+      POSTGRES_PASSWORD: cyber_password_secure_123
+    # Volume pour persister les donnees meme apres arret du conteneur
+    volumes:
+      # Volume nomme pour les donnees PostgreSQL
+      - postgres_data:/var/lib/postgresql/data
+      # Script d'initialisation execute au premier demarrage
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    # Port expose: 5432 (port PostgreSQL par defaut)
+    ports:
+      - "5432:5432"
+    # Healthcheck pour verifier que PostgreSQL est pret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cyber_user -d cybermetrics"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Service de l'application Flask
+  web:
+    # Construction de l'image depuis le Dockerfile local
+    build: .
+    # Nom du conteneur
+    container_name: cybermetrics_web
+    # Variables d'environnement pour la connexion a la base
+    environment:
+      # URL de connexion PostgreSQL
+      # Format: postgresql://utilisateur:motdepasse@hote:port/base
+      DATABASE_URL: postgresql://cyber_user:cyber_password_secure_123@db:5432/cybermetrics
+      # Mode debug Flask
+      FLASK_DEBUG: "1"
+    # Ports exposes: 5000 (Flask)
+    ports:
+      - "5000:5000"
+    # Dependance: attend que le service db soit sain avant de demarrer
+    depends_on:
+      db:
+        condition: service_healthy
+    # Volume pour le rechargement automatique du code en developpement
+    volumes:
+      - .:/app
+    # Redemarrage automatique en cas d'erreur
+    restart: unless-stopped
+
+# Definition des volumes nommes
+volumes:
+  # Volume pour persister les donnees PostgreSQL
+  postgres_data:

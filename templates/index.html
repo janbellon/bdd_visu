@@ -1,0 +1,218 @@
+<!--
+    Template: index.html (Dashboard)
+    Description: Page d'accueil affichant un resume des metriques de securite
+    Ce template herite de base.html et remplit le bloc 'content'
+-->
+{% extends "base.html" %}
+
+{% block title %}Dashboard - CyberMetrics{% endblock %}
+
+{% block content %}
+<!--
+    EN-TETE DE PAGE
+    Titre et description de la page dashboard
+-->
+<div class="page-header">
+    <h2>Dashboard</h2>
+    <p>Vue d'ensemble de la securite de votre infrastructure</p>
+</div>
+
+<!--
+    GRILLE DE STATISTIQUES
+    Affiche 4 cartes avec les metriques principales
+    Ces donnees viennent de la route Flask (variables passees au template)
+-->
+<div class="stats-grid">
+    <!--
+        Carte 1: Total des evenements de securite
+        Affiche le nombre total d'evenements detectes
+    -->
+    <div class="stat-card">
+        <div class="stat-icon cyan">📊</div>
+        <div class="stat-content">
+            <h4>{{ total_events }}</h4>
+            <p>Evenements totaux</p>
+        </div>
+    </div>
+
+    <!--
+        Carte 2: Serveurs actifs
+        Nombre de serveurs avec status 'active'
+    -->
+    <div class="stat-card">
+        <div class="stat-icon green">🖥️</div>
+        <div class="stat-content">
+            <h4>{{ active_servers }}</h4>
+            <p>Serveurs actifs</p>
+        </div>
+    </div>
+
+    <!--
+        Carte 3: Evenements critiques
+        Compte les evenements non resolus avec severite >= 4
+    -->
+    <div class="stat-card">
+        <div class="stat-icon red">⚠️</div>
+        <div class="stat-content">
+            <h4>{{ critical_events }}</h4>
+            <p>Alertes critiques</p>
+        </div>
+    </div>
+
+    <!--
+        Carte 4: Taux de resolution (calcule)
+        Pourcentage d'evenements resolus
+    -->
+    <div class="stat-card">
+        <div class="stat-icon violet">✓</div>
+        <div class="stat-content">
+            <!--
+                Calcul du taux: evite la division par zero avec un filtre Jinja2
+                Format: pourcentage entier
+            -->
+            <h4>{{ ((total_events - critical_events) / total_events * 100) | int if total_events > 0 else 0 }}%</h4>
+            <p>Taux de resolution</p>
+        </div>
+    </div>
+</div>
+
+<!--
+    SECTION: EVENEMENTS RECENTS
+    Tableau des 5 derniers evenements de securite detectes
+    Les donnees proviennent d'une requete SQL avec JOINTURE
+-->
+<div class="card">
+    <div class="card-header">
+        <h3>Evenements recents</h3>
+        <!-- Lien vers la page complete des tables -->
+        <a href="{{ url_for('view_tables', table='security_events') }}" class="btn btn-outline">
+            Voir tout
+        </a>
+    </div>
+
+    <!--
+        TABLEAU DES EVENEMENTS
+        Affiche les derniers evenements avec:
+        - Serveur (depuis la table servers via JOIN)
+        - Type de menace (depuis threat_types via JOIN)
+        - IP source
+        - Date/heure
+        - Statut avec badge colore
+    -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Serveur</th>
+                    <th>Menace</th>
+                    <th>Severite</th>
+                    <th>IP Source</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!--
+                    Boucle Jinja2 sur les evenements recents
+                    Chaque ligne represente un evenement de securite
+                -->
+                {% for event in recent_events %}
+                <tr>
+                    <td>{{ event.id }}</td>
+                    <!--
+                        Nom du serveur provenant de la jointure avec la table servers
+                        server_name est un alias defini dans la requete SQL
+                    -->
+                    <td>
+                        <span class="text-cyan">{{ event.server_name or 'N/A' }}</span>
+                        <br>
+                        <small class="text-muted">{{ event.server_ip or '' }}</small>
+                    </td>
+                    <!--
+                        Type de menace provenant de la jointure avec threat_types
+                    -->
+                    <td>{{ event.threat_name or 'Inconnu' }}</td>
+                    <!--
+                        Badge de severite colore selon le niveau (1-5)
+                        Utilise une classe CSS dynamique severity-X
+                    -->
+                    <td>
+                        <span class="badge severity-{{ event.severity_level or 1 }}">
+                            Niveau {{ event.severity_level or '?' }}
+                        </span>
+                    </td>
+                    <td><code>{{ event.source_ip }}</code></td>
+                    <!--
+                        Formatage de la date avec le filtre Jinja2
+                        strftime formatte l'objet datetime en chaine lisible
+                    -->
+                    <td>{{ event.event_timestamp.strftime('%d/%m/%Y %H:%M') if event.event_timestamp else 'N/A' }}</td>
+                    <!--
+                        Badge de statut avec couleur conditionnelle
+                        Utilise un dictionnaire Jinja2 pour mapper statut -> classe CSS
+                    -->
+                    <td>
+                        {% set status_class = {
+                            'detected': 'danger',
+                            'investigating': 'warning',
+                            'resolved': 'success',
+                            'false_positive': 'secondary'
+                        } %}
+                        <span class="badge badge-{{ status_class.get(event.status, 'info') }}">
+                            {{ event.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <!--
+                    Message affiche si aucun evenement n'existe
+                    Le bloc 'else' de la boucle for s'execute si la liste est vide
+                -->
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        Aucun evenement de securite enregistre
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!--
+    SECTION: LIENS RAPIDES
+    Cartes de navigation vers les autres sections de l'application
+-->
+<div class="stats-grid">
+    <div class="card" style="text-align: center; padding: 2rem;">
+        <h3 style="margin-bottom: 1rem;">Ajouter des donnees</h3>
+        <p class="text-muted" style="margin-bottom: 1.5rem;">
+            Ajouter de nouveaux serveurs, types de menaces ou evenements
+        </p>
+        <a href="{{ url_for('add_data') }}" class="btn btn-primary">
+            Ajouter
+        </a>
+    </div>
+
+    <div class="card" style="text-align: center; padding: 2rem;">
+        <h3 style="margin-bottom: 1rem;">Consulter les tables</h3>
+        <p class="text-muted" style="margin-bottom: 1.5rem;">
+            Visualiser le contenu brut des tables de la base de donnees
+        </p>
+        <a href="{{ url_for('view_tables') }}" class="btn btn-secondary">
+            Tables
+        </a>
+    </div>
+
+    <div class="card" style="text-align: center; padding: 2rem;">
+        <h3 style="margin-bottom: 1rem;">Analytics</h3>
+        <p class="text-muted" style="margin-bottom: 1.5rem;">
+            Graphiques et statistiques avancees avec filtres
+        </p>
+        <a href="{{ url_for('analytics') }}" class="btn btn-outline">
+            Analytics
+        </a>
+    </div>
+</div>
+{% endblock %}

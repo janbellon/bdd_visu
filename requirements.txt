@@ -1,0 +1,10 @@
+# Dependances Python pour l'application Flask
+# Flask: framework web leger pour Python
+Flask==3.0.0
+
+# psycopg2-binary: driver PostgreSQL pour Python
+# Permet la connexion et l'execution de requetes SQL
+psycopg2-binary==2.9.9
+
+# python-dotenv: chargement des variables d'environnement depuis .env
+python-dotenv==1.0.0
